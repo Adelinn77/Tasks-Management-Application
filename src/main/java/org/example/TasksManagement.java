@@ -12,6 +12,10 @@ public class TasksManagement implements Serializable {
         this.tasks = tasks;
     }
 
+    public Map<Employee, List<Task>> getTasks() {
+        return tasks;
+    }
+
     public void assignTaskToEmployee(int idEmployee, Task task) {
         tasks.get(idEmployee).add(task);
     }
@@ -32,4 +36,6 @@ public class TasksManagement implements Serializable {
             tasks.get(idEmployee).get(idTask).setStatusTask("Uncompleted");
         }
     }
+
+
 }

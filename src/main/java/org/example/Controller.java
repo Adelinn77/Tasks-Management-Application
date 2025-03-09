@@ -1,9 +1,7 @@
 package org.example;
 
-import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.*;
 
 public class Controller implements ActionListener {
     private View view;
@@ -26,7 +24,16 @@ public class Controller implements ActionListener {
             view.openAddEmployeeDialog();
         }
         else if(e.getSource() == view.getAddTaskButton()) {
-            view.openAddTaskDialog();
+            view.openAddTaskWindow();
+        }
+        else if(e.getSource() == view.getSimpleTaskButton()) {
+            view.openSimpleTaskDialog();
+        }
+        else if(e.getSource() == view.getComplexTaskButton()) {
+            view.openComplexTaskWindow();
+        }
+        else if(e.getSource() == view.getSimpleComplexTaskButton()){
+            view.openSimpleTaskDialog();
         }
     }
 
