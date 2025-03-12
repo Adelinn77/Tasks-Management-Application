@@ -35,4 +35,11 @@ public class ComplexTask extends Task implements Serializable {
         }
         return duration;
     }
+
+    @Override
+    public String toString() {
+        return "ComplexTask{" +
+                "tasks=" + tasks +
+                '}';
+    }
 }

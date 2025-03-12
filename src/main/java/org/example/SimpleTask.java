@@ -33,4 +33,12 @@ public class SimpleTask extends Task implements Serializable {
     public int estimateDuration(){
         return endHour - startHour;
     }
+
+    @Override
+    public String toString() {
+        return "SimpleTask{" +
+                "endHour=" + endHour +
+                ", startHour=" + startHour +
+                '}';
+    }
 }

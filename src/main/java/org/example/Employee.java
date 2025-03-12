@@ -11,7 +11,8 @@ public class Employee implements Serializable {
     public Employee() {}
 
     public Employee(String name) {
-        this.idEmployee = id++;
+        this.idEmployee = id+1;
+        id++;
         this.name = name;
     }
 

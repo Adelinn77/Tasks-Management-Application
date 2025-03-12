@@ -3,7 +3,7 @@ package org.example;
 import java.io.Serializable;
 import java.util.*;
 
-public class TasksManagement implements Serializable {
+public class TasksManagement {
     private Map<Employee, List<Task>> tasks = new HashMap<>();
 
     public TasksManagement() {}

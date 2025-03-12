@@ -1,28 +1,76 @@
 package org.example;
+import java.io.*;
 import java.util.*;
 
 public class Model {
-    private List<Employee> employees;
-    private List<Task> tasks;
+    private static final String EMPLOYEES_FILE_NAME = "employees.txt";
+    private static final String TASKS_FILE_NAME = "tasks.txt";
 
-    public Model() {
-        employees = new ArrayList<>();
-        employees.add(new Employee("John Doe"));
-        employees.add(new Employee("Jane Smith"));
-        employees.add(new Employee("Michael Brown"));
+    public Model() {}
 
-        tasks = new ArrayList<>();
-        tasks.add(new SimpleTask(12, 14));
-        tasks.add(new SimpleTask(17, 24));
-        tasks.add(new SimpleTask(8, 11));
-        tasks.add(new ComplexTask());
+    public static void saveTasks(List<Task> tasks) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(TASKS_FILE_NAME))) {
+            oos.writeObject(tasks);
+        } catch (IOException e) {
+            System.out.println("error saving tasks");
+        }
     }
 
-    public List<Employee> getEmployees() {
-        return employees;
+    public static List<Task> loadTasks() {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(TASKS_FILE_NAME))) {
+            List<Task> tasks = (List<Task>) ois.readObject();
+            if (tasks == null) {
+                tasks = new ArrayList<>();
+                //System.out.println("task list is empty");
+            }
+            return tasks;
+        } catch (IOException | ClassNotFoundException e) {
+            //System.out.println("Empty task list");
+            return null;
+        }
     }
 
-    public List<Task> getTasks() {
-        return tasks;
+    public static void saveEmployees(List<Employee> employees) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(EMPLOYEES_FILE_NAME))) {
+            oos.writeObject(employees);
+        } catch (IOException e) {
+            System.out.println("error saving employees");
+        }
     }
+
+    public static List<Employee> loadEmployees() {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(EMPLOYEES_FILE_NAME))) {
+            List<Employee> employees = (List<Employee>) ois.readObject();
+            if (employees == null) {
+                employees = new ArrayList<>();
+                //System.out.println("employee list is empty");
+            }
+            return employees;
+        } catch (IOException | ClassNotFoundException e) {
+            //System.out.println("empty employee list");
+            return null;
+        }
+    }
+
+    public static void addEmployee(Employee employee) {
+        List<Employee> employees = Model.loadEmployees();
+        if(employees == null) {
+            employees = new ArrayList<>();
+        }
+        employees.add(employee);
+        saveEmployees(employees);
+    }
+
+    public static void addTask(Task task) {
+        List<Task> tasks = Model.loadTasks();
+        if(tasks == null) {
+            tasks = new ArrayList<>();
+        }
+        tasks.add(task);
+        saveTasks(tasks);
+    }
+
+
+
+
 }

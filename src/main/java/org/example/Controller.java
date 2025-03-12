@@ -5,20 +5,17 @@ import java.awt.event.ActionListener;
 
 public class Controller implements ActionListener {
     private View view;
-    Model model = new Model();
-
     public Controller(View view) {
         this.view = view;
-
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == view.getEmployeesButton()) {
-            view.displayEmployeesTable(model);
+            view.displayEmployeesTable();
         }
         else if(e.getSource() == view.getTasksButton()) {
-            view.displayTasksTable(model);
+            view.displayTasksTable();
         }
         else if(e.getSource() == view.getAddEmployeeButton()) {
             view.openAddEmployeeDialog();
@@ -32,8 +29,11 @@ public class Controller implements ActionListener {
         else if(e.getSource() == view.getComplexTaskButton()) {
             view.openComplexTaskWindow();
         }
-        else if(e.getSource() == view.getSimpleComplexTaskButton()){
+        else if(e.getSource() == view.getSimpleLeafTaskButton()){
             view.openSimpleTaskDialog();
+        }
+        else if(e.getSource() == view.getComplexTreeTaskButton()){
+            view.openSimpleLeafTaskDialog(view.getCurrentComplexTask());
         }
     }
 
