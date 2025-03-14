@@ -3,7 +3,7 @@ package org.example;
 import java.io.Serializable;
 import java.util.*;
 
-public class ComplexTask extends Task implements Serializable {
+public non-sealed class ComplexTask extends Task implements Serializable {
     List<Task> tasks = new ArrayList<>();
 
     public ComplexTask() {}

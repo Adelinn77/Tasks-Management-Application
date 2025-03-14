@@ -4,11 +4,13 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 
 public class View extends JFrame {
     private JMenuBar menuBar = new JMenuBar();
@@ -18,12 +20,14 @@ public class View extends JFrame {
     private JButton addTaskButton = new JButton("Add Task");
     private ComplexTask currentComplexTask;
 
-    JButton simpleTaskButton = new JButton("Add simple task");
-    JButton complexTaskButton = new JButton("Add complex task");
-    JButton simpleLeafTaskButton = new JButton("+ ST");
-    JButton complexTreeTaskButton = new JButton("+ CT");
-    JPanel contentPane = new JPanel();
-    Controller controller = new Controller(this);
+    private JButton simpleTaskButton = new JButton("Add simple task");
+    private JButton complexTaskButton = new JButton("Add complex task");
+    private JButton simpleLeafTaskButton = new JButton("+ ST");
+    private JButton complexTreeTaskButton = new JButton("+ CT");
+    private JPanel contentPane = new JPanel();
+    private Controller controller = new Controller(this);
+
+    public static Stack<ComplexTask> taskHistory = new Stack<>();
 
     public View(String name) {
         super(name);
@@ -99,6 +103,7 @@ public class View extends JFrame {
         for (TableColumn column : columns) {
             column.setCellRenderer(centerRenderer);
         }
+
     }
 
     public void displayEmployeesTable() {
@@ -202,8 +207,14 @@ public class View extends JFrame {
         }
     }
 
+    //deschide window pt adaugare de complex task
     public void openComplexTaskWindow() {
+        System.out.println("deschidere Complex Task Window");
+
         currentComplexTask = new ComplexTask();
+        Model.addTask(currentComplexTask);
+        taskHistory.push(currentComplexTask);
+
         JPanel panel = new JPanel();
         JLabel taskList = new JLabel("The list of tasks for the complex task: ");
         taskList.setFont(new Font("Arial", Font.BOLD, 18));
@@ -213,19 +224,17 @@ public class View extends JFrame {
         this.customizeTreeButton(complexTreeTaskButton);
         panel.add(simpleLeafTaskButton);
         panel.add(complexTreeTaskButton);
-        JTable table = createComplexTaskTree(currentComplexTask);
-        this.customizeTable(table);
-        JScrollPane tableScrollPane = new JScrollPane(table);
-
 
         contentPane.removeAll();
         contentPane.setLayout(new BorderLayout());
         contentPane.add(panel, BorderLayout.NORTH);
-        contentPane.add(tableScrollPane, BorderLayout.CENTER);
+        //contentPane.add(tableScrollPane, BorderLayout.CENTER);
         this.setContentPane(contentPane);
     }
 
+    //deschide dialog pt creare de simple task intr un complex task
     public void openSimpleLeafTaskDialog(ComplexTask complexTask) {
+        System.out.println("Deschidere Simple Leaf Dialog ");
         JTextField field1 = new JTextField();
         JTextField field2 = new JTextField();
         Object[] message = {
@@ -239,25 +248,96 @@ public class View extends JFrame {
             SimpleTask simpleTask = new SimpleTask(Integer.parseInt(value1), Integer.parseInt(value2));
             complexTask.tasks.add(simpleTask);
             Model.addTask(simpleTask);
+;
+            System.out.println("Task simplu adaugat la task complex");
+            this.displayTasksForComplexTask(complexTask);
         }
     }
 
-    public JTable createComplexTaskTree(ComplexTask complexTask) {
-        String[] columnNames = {"ID","Type", "Status", "Duration"};
-        int noTasks = 0;
-        Object[][] data = new Object[complexTask.getTasks().size()][4];
+    public void displayTasksForComplexTask(ComplexTask complexTask) {
+        System.out.println("displayTasksForComplexTask");
+        String[] columnNames = {"ID","Type", "Status", "Duration", "", "", ""};
+
+        Object[][] data = new Object[complexTask.getTasks().size()][7];
         int i = 0;
         for (Task task : complexTask.getTasks()) {
-            //System.out.println(task.toString());
             data[i][0] = task.getIdTask();
             data[i][1] = (task instanceof SimpleTask) ? "simple" : "complex";
             data[i][2] = task.getStatusTask();
-            data[i++][3] = task.estimateDuration();
+            data[i][3] = task.estimateDuration();
+            data[i][4] = (task instanceof ComplexTask) ? "+ST" : "";
+            data[i][5] = (task instanceof ComplexTask) ? "+CT" : "";
+            data[i++][6] = (task instanceof ComplexTask) ? "Details" : "";
         }
+
         JTable table = new JTable(new DefaultTableModel(data, columnNames));
-        return table;
+        this.customizeTable(table);
+        this.addTableEvents(table, complexTask);
+        JScrollPane tableScrollPane = new JScrollPane(table);
+
+        contentPane.removeAll();
+        JPanel panel = this.createTableForCT();
+        contentPane.add(panel, BorderLayout.NORTH);
+        contentPane.add(tableScrollPane, BorderLayout.CENTER);
+        this.setContentPane(contentPane);
+        contentPane.revalidate();
+        contentPane.repaint();
     }
 
+    public JPanel createTableForCT() {
+        JPanel panel = new JPanel(new FlowLayout());
+        System.out.println("create table for CT");
+        JLabel taskList = new JLabel("The list of tasks for the complex task: ");
+        taskList.setFont(new Font("Arial", Font.BOLD, 18));
+
+        panel.add(taskList);
+        panel.add(simpleLeafTaskButton);
+        panel.add(complexTreeTaskButton);
+
+        if (taskHistory.size() > 1) {
+            System.out.println("Back button needed");
+            JButton backButton = new JButton("⬅ Back");
+            backButton.addActionListener(e -> {
+                taskHistory.pop();
+                displayTasksForComplexTask(taskHistory.peek());
+            });
+            panel.add(backButton);
+        }
+
+        return panel;
+    }
+
+    public void addComplexTaskInTree(ComplexTask parentComplexTask, ComplexTask childComplexTask) {
+        System.out.println("adaugare task complex in task complex");
+        parentComplexTask.getTasks().add(childComplexTask);
+        Model.addTask(childComplexTask);
+        taskHistory.push(childComplexTask);
+        this.displayTasksForComplexTask(childComplexTask);
+    }
+
+    public void addTableEvents(JTable table, ComplexTask complexTask) {
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = table.rowAtPoint(e.getPoint());
+                int col = table.columnAtPoint(e.getPoint());
+
+                if (col == 4) {
+                    Task selectedTask = complexTask.getTasks().get(row);
+                    if (selectedTask instanceof ComplexTask) {
+                        openSimpleLeafTaskDialog((ComplexTask)selectedTask);
+                    }
+                }
+                if (col == 5) {
+                    Task selectedTask = complexTask.getTasks().get(row);
+                    if (selectedTask instanceof ComplexTask) {
+                        taskHistory.push(complexTask);
+                        addComplexTaskInTree(complexTask, (ComplexTask)selectedTask);
+                    }
+                }
+            }
+        });
+    }
 
     public JButton getEmployeesButton() {
         return employeesButton;

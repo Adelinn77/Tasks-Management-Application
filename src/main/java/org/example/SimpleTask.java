@@ -2,7 +2,7 @@ package org.example;
 
 import java.io.Serializable;
 
-public class SimpleTask extends Task implements Serializable {
+public non-sealed class SimpleTask extends Task implements Serializable {
     private int startHour;
     private int endHour;
 
