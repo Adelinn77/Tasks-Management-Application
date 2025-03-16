@@ -6,13 +6,18 @@ import java.util.*;
 public class TasksManagement {
     private Map<Employee, List<Task>> tasks = new HashMap<>();
 
-    public TasksManagement() {}
+    public TasksManagement() {
+        this.tasks = new HashMap<>();
+    }
 
     public TasksManagement(Map<Employee, List<Task>> tasks) {
         this.tasks = tasks;
     }
 
     public Map<Employee, List<Task>> getTasks() {
+        if (tasks == null) {
+            tasks = new HashMap<>();
+        }
         return tasks;
     }
 

@@ -56,5 +56,9 @@ public class Main {
 //        tasksManagement.getTasks().get(e4).add(t10);
 
        // Utility.over40Hours(tasksManagement);
+//        TasksManagement tm = Model.loadTasksManagement();
+//        for (Employee employee : tm.getTasks().keySet()){
+//            System.out.println(employee);
+//        }
     }
 }

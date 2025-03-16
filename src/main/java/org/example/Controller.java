@@ -30,11 +30,14 @@ public class Controller implements ActionListener {
             view.openComplexTaskWindow();
         }
         else if(e.getSource() == view.getSimpleLeafTaskButton()){
-            view.openSimpleLeafTaskDialog(view.getCurrentComplexTask());
+            view.openSimpleLeafTaskDialog(View.taskHistory.peek());
         }
         else if(e.getSource() == view.getComplexTreeTaskButton()){
             ComplexTask complexTask = new ComplexTask();
             view.addComplexTaskInTree(View.taskHistory.peek(), complexTask);
+        }
+        else if(e.getSource() == view.getAssignTaskButton()){
+            view.openAssignTaskDialog();
         }
     }
 

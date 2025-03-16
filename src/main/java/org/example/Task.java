@@ -5,7 +5,7 @@ import java.io.Serializable;
 public sealed abstract class Task implements Serializable permits ComplexTask, SimpleTask {
     private String statusTask = "";
     private int idTask;
-    private static int id = 1;
+    private static int id = 0;
 
 
     public Task() {
@@ -27,4 +27,8 @@ public sealed abstract class Task implements Serializable permits ComplexTask, S
     }
 
     public abstract int estimateDuration();
+
+    public static void setId(int value) {
+        id = value;
+    }
 }

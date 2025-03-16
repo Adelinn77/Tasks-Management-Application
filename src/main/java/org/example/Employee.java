@@ -6,9 +6,12 @@ import java.util.Objects;
 public class Employee implements Serializable {
     private int idEmployee = 1;
     private String name;
-    static int id = 1;
+    static int id = 0;
 
-    public Employee() {}
+    public Employee() {
+        this.idEmployee = id+1;
+        id++;
+    }
 
     public Employee(String name) {
         this.idEmployee = id+1;
@@ -26,6 +29,10 @@ public class Employee implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public static void setId(int value) {
+        id = value;
     }
 
     @Override

@@ -6,9 +6,11 @@ import java.util.*;
 public non-sealed class ComplexTask extends Task implements Serializable {
     List<Task> tasks = new ArrayList<>();
 
-    public ComplexTask() {}
+    public ComplexTask() {
+        this.tasks = new ArrayList<>();
+    }
     public ComplexTask(List<Task> tasks) {
-        this.tasks = tasks;
+        this.tasks = new ArrayList<>(tasks);
     }
 
     public List<Task> getTasks() {
@@ -30,7 +32,7 @@ public non-sealed class ComplexTask extends Task implements Serializable {
     @Override
     public int estimateDuration() {
         int duration = 0;
-        for(Task task : tasks) {
+        for(Task task : this.getTasks()) {
             duration += task.estimateDuration();
         }
         return duration;
