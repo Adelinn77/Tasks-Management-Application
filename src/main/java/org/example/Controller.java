@@ -39,6 +39,9 @@ public class Controller implements ActionListener {
         else if(e.getSource() == view.getAssignTaskButton()){
             view.openAssignTaskDialog();
         }
+        else if(e.getSource() == view.getModifyTaskButton()){
+            view.openModifyTaskStatusDialog();
+        }
     }
 
 }

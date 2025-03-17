@@ -19,6 +19,7 @@ public class View extends JFrame {
     private JButton addEmployeeButton = new JButton("Add Employee");
     private JButton addTaskButton = new JButton("Add Task");
     private JButton assignTaskButton = new JButton("Assign Task");
+    private JButton modifyTaskButton = new JButton("Modify Tasks Status");
 
     private JButton simpleTaskButton = new JButton("Add simple task");
     private JButton complexTaskButton = new JButton("Add complex task");
@@ -43,7 +44,7 @@ public class View extends JFrame {
         this.simpleLeafTaskButton.addActionListener(this.controller);
         this.complexTaskButton.addActionListener(this.controller);
         this.complexTreeTaskButton.addActionListener(this.controller);
-        this.assignTaskButton.addActionListener(this.controller);
+        this.modifyTaskButton.addActionListener(this.controller);
 
         this.setJMenuBar(menuBar);
         this.setContentPane(contentPane);
@@ -82,6 +83,12 @@ public class View extends JFrame {
     public void customizeButton(JButton button) {
         button.setBackground(new Color(200, 162, 200));
         button.setPreferredSize(new Dimension(200,150));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 20));
+    }
+
+    public void customizeModifyStatusButton(JButton button) {
+        button.setBackground(new Color(200, 162, 200));
+        button.setPreferredSize(new Dimension(270,50));
         button.setFont(new Font("Segoe UI", Font.BOLD, 20));
     }
 
@@ -124,26 +131,29 @@ public class View extends JFrame {
     }
 
     public void displayEmployeesTable() {
-        String[] columnNames = {"ID", "Name"};
+        String[] columnNames = {"ID", "Name", "Work Duration","Tasks"};
         int noEmployees = 0;
         List<Employee> employees = Model.loadEmployees();
         if(employees != null) noEmployees = employees.size();
         else {
             employees = new ArrayList<>();
         };
-        Object[][] data = new Object[noEmployees][2];
+        Object[][] data = new Object[noEmployees][4];
 
         int i = 0;
         for (Employee employee : employees) {
             //System.out.println(employee.toString());
             data[i][0] = employee.getIdEmployee();
-            data[i++][1] = employee.getName();
+            data[i][1] = employee.getName();
+            data[i][2] = Model.loadTasksManagement().calculateEmployeeWorkDuration(employee.getIdEmployee());
+            data[i++][3] = "[*]";
         }
 
         JTable table = new JTable(new DefaultTableModel(data, columnNames));
         JScrollPane tableScrollPane = new JScrollPane(table);
         tableScrollPane.setPreferredSize(new Dimension(400, 300));
         this.customizeTable(table);
+        this.addViewEmployeesTableEvents(table, employees);
 
         contentPane.removeAll();
         contentPane.setLayout(new BorderLayout());
@@ -183,6 +193,10 @@ public class View extends JFrame {
 
         contentPane.removeAll();
         contentPane.setLayout(new BorderLayout());
+        JPanel panel = new JPanel();
+        customizeModifyStatusButton(modifyTaskButton);
+        panel.add(modifyTaskButton);
+        contentPane.add(panel, BorderLayout.NORTH);
         contentPane.add(tableScrollPane, BorderLayout.CENTER);
         this.setContentPane(contentPane);
     }
@@ -204,6 +218,7 @@ public class View extends JFrame {
     }
 
     public void openAssignTaskDialog() {
+        System.out.println("Dialog opened");
         JTextField field1 = new JTextField();
         JTextField field2 = new JTextField();
         Object[] message = {
@@ -215,9 +230,12 @@ public class View extends JFrame {
         if (option == JOptionPane.OK_OPTION) {
             String value1 = field1.getText();
             String value2 = field2.getText();
-//            Model.loadEmployees();
-//            Employee employee = new Employee(value1);
-//            Model.addEmployee(employee);
+            Model.loadTasksManagement().assignTaskToEmployee(Integer.parseInt(value1), Model.findTaskById(Integer.parseInt(value2)));
+            System.out.println("Dialog finished with option: " + option);
+        }
+        else {
+            System.out.println("Dialog finished with option: " + option);
+            return;
         }
     }
 
@@ -393,6 +411,23 @@ public class View extends JFrame {
         });
     }
 
+    public static List<Task> flattenTasks(List<Task> roots) {
+        List<Task> all = new ArrayList<>();
+        for (Task task : roots) {
+            collect(task, all);
+        }
+        return all;
+    }
+
+    private static void collect(Task task, List<Task> all) {
+        all.add(task);
+        if (task instanceof ComplexTask complex) {
+            for (Task sub : complex.getTasks()) {
+                collect(sub, all);
+            }
+        }
+    }
+
     public void addViewTasksTableEvents(JTable table, List<Task> tasks) {
         table.addMouseListener(new MouseAdapter() {
             @Override
@@ -410,6 +445,75 @@ public class View extends JFrame {
                 }
             }
         });
+    }
+
+    public void addViewEmployeesTableEvents(JTable table, List<Employee> employees) {
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = table.rowAtPoint(e.getPoint());
+                int col = table.columnAtPoint(e.getPoint());
+                if (col == 3) {
+                    if(!employees.isEmpty()){
+                        Employee selectedEmployee = employees.get(row);
+                        viewTasksForEmployee(selectedEmployee);
+                    }
+                }
+            }
+        });
+    }
+
+    public void viewTasksForEmployee(Employee employee) {
+        List<Task> tasksOfEmployee = Model.loadTasksManagement().getTasksOfEmployee(employee);
+        List<Task> tasks = flattenTasks(tasksOfEmployee);
+
+//        for (Task t : tasks) {
+//            System.out.println("↳ Subtask: " + t.getIdTask() + " (" + (t instanceof SimpleTask ? "simple" : "complex") + ")");
+//        }
+        JDialog dialog = new JDialog(this, "Tasks for employee: " + employee.getName(), true);
+        dialog.setSize(500, 300);
+        dialog.setLayout(new BorderLayout());
+
+        String[] columnNames = {"ID", "Type", "Status", "Duration"};
+        Object[][] data = new Object[tasks.size()][4];
+
+        int i = 0;
+        for (Task task : tasks) {
+            //System.out.println(subtask);
+            data[i][0] = task.getIdTask();
+            data[i][1] = (task instanceof SimpleTask) ? "simple" : "complex";
+            data[i][2] = task.getStatusTask();
+            data[i++][3] = task.estimateDuration();
+        }
+
+        JTable tasksTable = new JTable(new DefaultTableModel(data, columnNames)) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        List<TableColumn> columns = Collections.list(tasksTable.getColumnModel().getColumns());
+        for (TableColumn column : columns) {
+            column.setCellRenderer(centerRenderer);
+        }
+
+        JScrollPane scrollPane = new JScrollPane(tasksTable);
+        dialog.add(scrollPane, BorderLayout.CENTER);
+
+        JButton closeButton = new JButton("Close");
+        customizeCloseButton(closeButton);
+        closeButton.addActionListener(e -> dialog.dispose());
+
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.add(closeButton);
+        dialog.add(bottomPanel, BorderLayout.SOUTH);
+
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
 
     public void viewTasksForComplexTask(ComplexTask complexTask) {
@@ -441,6 +545,14 @@ public class View extends JFrame {
             }
         };
 
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        List<TableColumn> columns = Collections.list(subtaskTable.getColumnModel().getColumns());
+        for (TableColumn column : columns) {
+            column.setCellRenderer(centerRenderer);
+        }
+
         JScrollPane scrollPane = new JScrollPane(subtaskTable);
         dialog.add(scrollPane, BorderLayout.CENTER);
 
@@ -456,24 +568,19 @@ public class View extends JFrame {
         dialog.setVisible(true);
     }
 
-    public static List<Task> flattenTasks(List<Task> roots) {
-        List<Task> all = new ArrayList<>();
-        for (Task task : roots) {
-            collect(task, all);
-        }
-        return all;
-    }
+    public void openModifyTaskStatusDialog(){
+        JTextField field1 = new JTextField();
+        Object[] message = {
+                "Enter task's id:", field1,
+        };
 
-    private static void collect(Task task, List<Task> all) {
-        all.add(task);
-        if (task instanceof ComplexTask complex) {
-            for (Task sub : complex.getTasks()) {
-                collect(sub, all);
-            }
+        int option = JOptionPane.showConfirmDialog(null, message, "Modify status", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+            String value1 = field1.getText();
+            System.out.println("modific task: " + Integer.parseInt(value1));
+            Model.loadTasksManagement().modifyTaskStatus(1, Integer.parseInt(value1));
         }
     }
-
-
 
     public JButton getEmployeesButton() {
         return employeesButton;
@@ -511,5 +618,8 @@ public class View extends JFrame {
         return complexTreeTaskButton;
     }
 
+    public JButton getModifyTaskButton() {
+        return modifyTaskButton;
+    }
 }
 

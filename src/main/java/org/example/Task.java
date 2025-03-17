@@ -1,6 +1,7 @@
 package org.example;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public sealed abstract class Task implements Serializable permits ComplexTask, SimpleTask {
     private String statusTask = "";
@@ -31,4 +32,12 @@ public sealed abstract class Task implements Serializable permits ComplexTask, S
     public static void setId(int value) {
         id = value;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Task task)) return false;
+        return idTask == task.idTask && Objects.equals(statusTask, task.statusTask);
+    }
+
 }

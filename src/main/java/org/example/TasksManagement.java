@@ -3,7 +3,7 @@ package org.example;
 import java.io.Serializable;
 import java.util.*;
 
-public class TasksManagement {
+public class TasksManagement implements Serializable {
     private Map<Employee, List<Task>> tasks = new HashMap<>();
 
     public TasksManagement() {
@@ -22,25 +22,28 @@ public class TasksManagement {
     }
 
     public void assignTaskToEmployee(int idEmployee, Task task) {
-        tasks.get(idEmployee).add(task);
+        Model.addTaskToEmployee(idEmployee, task);
     }
 
     public int calculateEmployeeWorkDuration(int idEmployee) {
         int duration = 0;
-        for (Task task : tasks.get(idEmployee)) {
-            if(task.getStatusTask().equals("Completed")) duration += task.estimateDuration();
+        for (Task task : View.flattenTasks(tasks.get(Model.findEmployeeById(idEmployee)))) {
+            if(task.getStatusTask().equals("Completed")){
+                duration += task.estimateDuration();
+                System.out.println("\n\n" + idEmployee + ": " + task.estimateDuration() + "\n\n");
+            }
         }
         return duration;
     }
 
     public void modifyTaskStatus(int idEmployee, int idTask) {
-        if(tasks.get(idEmployee).get(idTask).getStatusTask().equals("Uncompleted")) {
-            tasks.get(idEmployee).get(idTask).setStatusTask("Completed");
-        }
-        else {
-            tasks.get(idEmployee).get(idTask).setStatusTask("Uncompleted");
+        if(Model.findTaskById(idTask) != null){
+            System.out.println("\n\n" + idEmployee + ": " + idTask + "\n\n gasit!");
+            Model.changeStatusForTask(Model.findTaskById(idTask));
         }
     }
 
-
+    public List<Task> getTasksOfEmployee(Employee employee) {
+        return tasks.get(employee);
+    }
 }

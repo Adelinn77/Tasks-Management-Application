@@ -5,7 +5,7 @@ import java.util.*;
 public class Model {
     private static final String EMPLOYEES_FILE = "employees.txt";
     private static final String TASKS_FILE = "tasks.txt";
-    private static final String TM_FILE = "taskManagement.txt";
+    private static final String TM_FILE = "management.txt";
     private static List<Task> rootTasks = new ArrayList<>();
 
     public Model() {}
@@ -85,7 +85,6 @@ public class Model {
         Task.setId(maxId);
     }
 
-
     public static void saveTaskManagement(TasksManagement tasksManagement) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(TM_FILE))) {
             oos.writeObject(tasksManagement);
@@ -95,17 +94,24 @@ public class Model {
     }
 
     public static TasksManagement loadTasksManagement() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(TM_FILE))) {
-            TasksManagement tasksManagement = (TasksManagement) ois.readObject();
-            if (tasksManagement == null) {
-                tasksManagement = new TasksManagement();
+        File file = new File(TM_FILE);
+
+        if (!file.exists() || file.length() == 0) {
+            return new TasksManagement();
+        }
+
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            Object obj = ois.readObject();
+            if (obj instanceof TasksManagement tm) {
+                return tm;
+            } else {
+                return new TasksManagement();
             }
-            return tasksManagement;
         } catch (IOException | ClassNotFoundException e) {
-            System.out.println("error loading task management");
-            return null;
+            return new TasksManagement();
         }
     }
+
 
     public static void addEmployeeInTaskManagement(Employee employee) {
         TasksManagement tasksManagement = loadTasksManagement();
@@ -114,5 +120,71 @@ public class Model {
         }
         tasksManagement.getTasks().put(employee, new ArrayList<>());
         saveTaskManagement(tasksManagement);
+    }
+
+    public static Employee findEmployeeById(int id) {
+        if(Model.loadEmployees() != null) {
+            for(Employee employee : Model.loadEmployees()) {
+                if (employee.getIdEmployee() == id) {
+                    return employee;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static void addTaskToEmployee(int employeeId, Task task) {
+        TasksManagement tasksManagement = loadTasksManagement();
+        if (tasksManagement == null) {
+            tasksManagement = new TasksManagement();
+        }
+        Employee employee = findEmployeeById(employeeId);
+        if(employee == null) {
+            System.out.println("employee not found");
+        }
+        else if(tasksManagement.getTasks().containsKey(employee)) {
+           tasksManagement.getTasks().get(employee).add(task);
+        }
+        saveTaskManagement(tasksManagement);
+    }
+
+    public static Task findTaskById(int id) {
+        List<Task> tasks = View.flattenTasks(Model.loadTasks());
+
+        for(Task task : tasks) {
+            if (task.getIdTask() == id) {
+                return task;
+            }
+        }
+
+        return null;
+    }
+
+    public static void changeStatusForTask(Task t) {
+        if(t.getStatusTask().equals("Uncompleted")){
+            System.out.println("now completed");
+            t.setStatusTask("Completed");
+            modifyInTM(t, "Completed");
+        }
+        else if(t.getStatusTask().equals("Completed")){
+            t.setStatusTask("Uncompleted");
+            modifyInTM(t, "Uncompleted");
+        }
+        System.out.println("modific 6:" + t.getIdTask());
+        Model.saveTasks();
+    }
+
+    public static void modifyInTM(Task t, String newStatus) {
+        TasksManagement tasksManagement = loadTasksManagement();
+        for(Employee employee : tasksManagement.getTasks().keySet()) {
+            for(Task task : View.flattenTasks(tasksManagement.getTasks().get(employee))) {
+                if(task.getIdTask() == t.getIdTask()) {
+                    System.out.println("Am gasit task-ul cu id-ul " + t.getIdTask());
+                    task.setStatusTask(newStatus);
+                }
+            }
+        }
+        saveTaskManagement(tasksManagement);
+        saveTasks();
     }
 }
