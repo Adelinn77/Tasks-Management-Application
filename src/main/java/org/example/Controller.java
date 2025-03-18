@@ -12,15 +12,19 @@ public class Controller implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == view.getEmployeesButton()) {
+            view.clearTaskHistory();
             view.displayEmployeesTable();
         }
         else if(e.getSource() == view.getTasksButton()) {
+            view.clearTaskHistory();
             view.displayTasksTable();
         }
         else if(e.getSource() == view.getAddEmployeeButton()) {
+            view.clearTaskHistory();
             view.openAddEmployeeDialog();
         }
         else if(e.getSource() == view.getAddTaskButton()) {
+            view.clearTaskHistory();
             view.openAddTaskWindow();
         }
         else if(e.getSource() == view.getSimpleTaskButton()) {
@@ -37,10 +41,14 @@ public class Controller implements ActionListener {
             view.addComplexTaskInTree(View.taskHistory.peek(), complexTask);
         }
         else if(e.getSource() == view.getAssignTaskButton()){
+            view.clearTaskHistory();
             view.openAssignTaskDialog();
         }
         else if(e.getSource() == view.getModifyTaskButton()){
             view.openModifyTaskStatusDialog();
+        }
+        else if(e.getSource() == view.getFilterEmployeesButton()){
+            view.filterEmployeesDialog();
         }
     }
 

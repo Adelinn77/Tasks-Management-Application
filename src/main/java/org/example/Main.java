@@ -11,16 +11,18 @@ import java.util.Map;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) {
-        JFrame frame = new View("Task Management GUI");
+        Model.resetIdTasks();
+        View frame = new View("Task Management GUI");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
 
+
 //        Map<Employee, List<Task>> tasks = new HashMap<>();
 //        Employee e1 = new Employee("JOHN");
-//        Employee e2 = new Employee("JOHN");
-//        Employee e3 = new Employee("JOHN");
-//        Employee e4 = new Employee("JOHN");
-//        Employee e5 = new Employee("JOHN");
+//        Employee e2 = new Employee("JACK");
+//        Employee e3 = new Employee("RYAN");
+//        Employee e4 = new Employee("PHIL");
+//        Employee e5 = new Employee("FINLAY");
 //
 //        SimpleTask t1 = new SimpleTask(0, 24);
 //        SimpleTask t2 = new SimpleTask(0, 24);
@@ -55,10 +57,10 @@ public class Main {
 //        tasksManagement.getTasks().put(e4, new ArrayList<>());
 //        tasksManagement.getTasks().get(e4).add(t10);
 
-       // Utility.over40Hours(tasksManagement);
-        List<Task> tasks = View.flattenTasks(Model.loadTasks());
-        for (Task task : tasks) {
-            System.out.println("task id: " + task.getIdTask());
-        }
+        //Utility.over40Hours(tasksManagement);
+//        List<Task> tasks = View.flattenTasks(Model.loadTasks());
+//        for (Task task : tasks) {
+//            System.out.println("task id: " + task.getIdTask());
+//        }
     }
 }

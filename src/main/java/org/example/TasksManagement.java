@@ -28,7 +28,7 @@ public class TasksManagement implements Serializable {
     public int calculateEmployeeWorkDuration(int idEmployee) {
         int duration = 0;
         for (Task task : View.flattenTasks(tasks.get(Model.findEmployeeById(idEmployee)))) {
-            if(task.getStatusTask().equals("Completed")){
+            if(task != null && task.getStatusTask().equals("Completed") && task instanceof SimpleTask){
                 duration += task.estimateDuration();
                 System.out.println("\n\n" + idEmployee + ": " + task.estimateDuration() + "\n\n");
             }
@@ -40,6 +40,9 @@ public class TasksManagement implements Serializable {
         if(Model.findTaskById(idTask) != null){
             System.out.println("\n\n" + idEmployee + ": " + idTask + "\n\n gasit!");
             Model.changeStatusForTask(Model.findTaskById(idTask));
+        }
+        else{
+            System.out.println("\n\n" + idEmployee + ": " + idTask + "\n\n negasit!");
         }
     }
 

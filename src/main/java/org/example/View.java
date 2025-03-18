@@ -7,10 +7,8 @@ import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Stack;
 
 public class View extends JFrame {
     private JMenuBar menuBar = new JMenuBar();
@@ -25,6 +23,7 @@ public class View extends JFrame {
     private JButton complexTaskButton = new JButton("Add complex task");
     private JButton simpleLeafTaskButton = new JButton("+ ST");
     private JButton complexTreeTaskButton = new JButton("+ CT");
+    private JButton filterEmployeesButton = new JButton("Filter by work duration");
     private JPanel contentPane = new JPanel();
     private Controller controller = new Controller(this);
 
@@ -33,6 +32,10 @@ public class View extends JFrame {
     public View(String name) {
         super(name);
         this.prepareGui();
+    }
+
+    public void clearTaskHistory() {
+        taskHistory.clear();
     }
 
     public void prepareGui() {
@@ -45,6 +48,7 @@ public class View extends JFrame {
         this.complexTaskButton.addActionListener(this.controller);
         this.complexTreeTaskButton.addActionListener(this.controller);
         this.modifyTaskButton.addActionListener(this.controller);
+        this.filterEmployeesButton.addActionListener(this.controller);
 
         this.setJMenuBar(menuBar);
         this.setContentPane(contentPane);
@@ -92,6 +96,12 @@ public class View extends JFrame {
         button.setFont(new Font("Segoe UI", Font.BOLD, 20));
     }
 
+    public void customizeFilterEmployeesButton(JButton button) {
+        button.setBackground(new Color(200, 162, 200));
+        button.setPreferredSize(new Dimension(270,50));
+        button.setFont(new Font("Segoe UI", Font.BOLD, 20));
+    }
+
     public void customizeSideButton(JButton button) {
         button.setBackground(new Color(200, 162, 200));
         button.setPreferredSize(new Dimension(250,80));
@@ -131,22 +141,25 @@ public class View extends JFrame {
     }
 
     public void displayEmployeesTable() {
-        String[] columnNames = {"ID", "Name", "Work Duration","Tasks"};
+        String[] columnNames = {"ID", "Name", "Work Duration","Tasks", "Completed Tasks", "Uncompleted Tasks"};
         int noEmployees = 0;
         List<Employee> employees = Model.loadEmployees();
         if(employees != null) noEmployees = employees.size();
         else {
             employees = new ArrayList<>();
         };
-        Object[][] data = new Object[noEmployees][4];
+        Object[][] data = new Object[noEmployees][6];
 
+        HashMap <String, Map<String, Integer>> statusTasks = Utility.statusTasksForEmmployees(Model.loadTasksManagement());
         int i = 0;
         for (Employee employee : employees) {
             //System.out.println(employee.toString());
             data[i][0] = employee.getIdEmployee();
             data[i][1] = employee.getName();
             data[i][2] = Model.loadTasksManagement().calculateEmployeeWorkDuration(employee.getIdEmployee());
-            data[i++][3] = "[*]";
+            data[i][3] = "[*]";
+            data[i][4] = statusTasks.get(employee.getName()).get("Completed");
+            data[i++][5] = statusTasks.get(employee.getName()).get("Uncompleted");
         }
 
         JTable table = new JTable(new DefaultTableModel(data, columnNames));
@@ -154,9 +167,15 @@ public class View extends JFrame {
         tableScrollPane.setPreferredSize(new Dimension(400, 300));
         this.customizeTable(table);
         this.addViewEmployeesTableEvents(table, employees);
+        this.customizeFilterEmployeesButton(filterEmployeesButton);
 
         contentPane.removeAll();
         contentPane.setLayout(new BorderLayout());
+
+        JPanel panel = new JPanel();
+        panel.add(filterEmployeesButton, BorderLayout.CENTER);
+
+        contentPane.add(panel, BorderLayout.NORTH);
         contentPane.add(tableScrollPane, BorderLayout.CENTER);
         this.setContentPane(contentPane);
     }
@@ -242,6 +261,7 @@ public class View extends JFrame {
 
     public void openAddTaskWindow() {
         JPanel panel = new JPanel();
+        Model.loadTasks();
 
         panel.add(simpleTaskButton);
         panel.add(complexTaskButton);
@@ -413,8 +433,10 @@ public class View extends JFrame {
 
     public static List<Task> flattenTasks(List<Task> roots) {
         List<Task> all = new ArrayList<>();
-        for (Task task : roots) {
-            collect(task, all);
+        if(roots != null) {
+            for (Task task : roots) {
+                collect(task, all);
+            }
         }
         return all;
     }
@@ -582,6 +604,61 @@ public class View extends JFrame {
         }
     }
 
+    public void filterEmployeesDialog(){
+        System.out.println("filter...");
+        HashMap<Integer, ArrayList<Employee>> greatEmployees = Utility.over40Hours(Model.loadTasksManagement());
+
+        JDialog dialog = new JDialog(this, "All employees with a work duration greater than 40 hours", true);
+        dialog.setSize(500, 300);
+        dialog.setLayout(new BorderLayout());
+
+        String[] columnNames = {"ID", "Name", "Work Duration"};
+        int totalEmployees = 0;
+        for (ArrayList<Employee> list : greatEmployees.values()) {
+            totalEmployees += list.size();
+        }
+
+        Object[][] data = new Object[totalEmployees][3];
+
+        int i = 0;
+        for (Integer wd : greatEmployees.keySet()) {
+            for(Employee e : greatEmployees.get(wd)) {
+                data[i][0] = e.getIdEmployee();
+                data[i][1] = e.getName();
+                data[i++][2] = wd;
+            }
+        }
+
+        JTable greatEmployeesTable = new JTable(new DefaultTableModel(data, columnNames)) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        List<TableColumn> columns = Collections.list(greatEmployeesTable.getColumnModel().getColumns());
+        for (TableColumn column : columns) {
+            column.setCellRenderer(centerRenderer);
+        }
+
+        JScrollPane scrollPane = new JScrollPane(greatEmployeesTable);
+        dialog.add(scrollPane, BorderLayout.CENTER);
+
+        JButton closeButton = new JButton("Close");
+        customizeCloseButton(closeButton);
+        closeButton.addActionListener(e -> dialog.dispose());
+
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.add(closeButton);
+        dialog.add(bottomPanel, BorderLayout.SOUTH);
+
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
     public JButton getEmployeesButton() {
         return employeesButton;
     }
@@ -620,6 +697,10 @@ public class View extends JFrame {
 
     public JButton getModifyTaskButton() {
         return modifyTaskButton;
+    }
+
+    public JButton getFilterEmployeesButton() {
+        return filterEmployeesButton;
     }
 }
 
