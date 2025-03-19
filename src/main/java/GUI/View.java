@@ -1,4 +1,12 @@
-package org.example;
+package GUI;
+
+import BusinessLogic.Controller;
+import BusinessLogic.Utility;
+import DataAcces.Model;
+import DataModel.ComplexTask;
+import DataModel.Employee;
+import DataModel.SimpleTask;
+import DataModel.Task;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -153,7 +161,6 @@ public class View extends JFrame {
         HashMap <String, Map<String, Integer>> statusTasks = Utility.statusTasksForEmmployees(Model.loadTasksManagement());
         int i = 0;
         for (Employee employee : employees) {
-            //System.out.println(employee.toString());
             data[i][0] = employee.getIdEmployee();
             data[i][1] = employee.getName();
             data[i][2] = Model.loadTasksManagement().calculateEmployeeWorkDuration(employee.getIdEmployee());
@@ -181,19 +188,16 @@ public class View extends JFrame {
     }
 
     public void displayTasksTable() {
-        //System.out.println("display tasks table");
         String[] columnNames = {"ID","Type", "Status", "Duration", "Details"};
         int noTasks = 0;
         List<Task> tasks = flattenTasks(Model.loadTasks());
         if(tasks != null) noTasks = tasks.size();
         else {
-            System.out.println("here!");
             tasks = new ArrayList<>();
         }
         Object[][] data = new Object[noTasks][5];
         int i = 0;
         for (Task task : tasks) {
-            System.out.println(task.toString());
             if(task != null){
                 data[i][0] = task.getIdTask();
                 data[i][1] = (task instanceof SimpleTask) ? "simple" : "complex";
@@ -237,7 +241,6 @@ public class View extends JFrame {
     }
 
     public void openAssignTaskDialog() {
-        System.out.println("Dialog opened");
         JTextField field1 = new JTextField();
         JTextField field2 = new JTextField();
         Object[] message = {
@@ -250,10 +253,8 @@ public class View extends JFrame {
             String value1 = field1.getText();
             String value2 = field2.getText();
             Model.loadTasksManagement().assignTaskToEmployee(Integer.parseInt(value1), Model.findTaskById(Integer.parseInt(value2)));
-            System.out.println("Dialog finished with option: " + option);
         }
         else {
-            System.out.println("Dialog finished with option: " + option);
             return;
         }
     }
@@ -290,13 +291,10 @@ public class View extends JFrame {
         }
     }
 
-    //deschide window pt adaugare de complex task
     public void openComplexTaskWindow() {
-//        System.out.println("deschidere Complex Task Window");
 
         ComplexTask complexTask = new ComplexTask();
         Model.addTask(complexTask);
-        System.out.println("\nParent Complex Task id:" + complexTask.getIdTask() + "\n");
         taskHistory.push(complexTask);
 
         JPanel panel = new JPanel();
@@ -312,13 +310,11 @@ public class View extends JFrame {
         contentPane.removeAll();
         contentPane.setLayout(new BorderLayout());
         contentPane.add(panel, BorderLayout.NORTH);
-        //contentPane.add(tableScrollPane, BorderLayout.CENTER);
+
         this.setContentPane(contentPane);
     }
 
-    //deschide dialog pt creare de simple task intr un complex task
     public void openSimpleLeafTaskDialog(ComplexTask complexTask) {
-//        System.out.println("Deschidere Simple Leaf Dialog ");
         JTextField field1 = new JTextField();
         JTextField field2 = new JTextField();
         Object[] message = {
@@ -331,17 +327,13 @@ public class View extends JFrame {
             String value2 = field2.getText();
             SimpleTask simpleTask = new SimpleTask(Integer.parseInt(value1), Integer.parseInt(value2));
             complexTask.getTasks().add(simpleTask);
-            //Model.addTask(simpleTask);
             Model.saveTasks();
-            System.out.println("\nParent Complex Task id:" + complexTask.getIdTask() + "\n" + "Tasks of parent: " + complexTask.getTasks());
-//            System.out.println("Task simplu adaugat la task complex");
-            //System.out.println(complexTask.getTasks());
+
             this.displayTasksForComplexTask(complexTask);
         }
     }
 
     public void displayTasksForComplexTask(ComplexTask complexTask) {
-        //System.out.println("displayTasksForComplexTask");
         String[] columnNames = {"ID","Type", "Status", "Duration", "", ""};
 
         Object[][] data = new Object[complexTask.getTasks().size()][7];
@@ -371,7 +363,6 @@ public class View extends JFrame {
 
     public JPanel createTableForCT() {
         JPanel panel = new JPanel(new FlowLayout());
-      //  System.out.println("create table for CT");
         JLabel taskList = new JLabel("The list of tasks for the complex task: ");
         taskList.setFont(new Font("Segoe UI", Font.BOLD, 18));
 
@@ -382,7 +373,6 @@ public class View extends JFrame {
         }
 
         if (taskHistory.size() > 1) {
-           // System.out.println("Back button needed");
             JButton backButton = new JButton("<- Back");
             this.customizeBackButton(backButton);
             backButton.addActionListener(e -> {
@@ -396,11 +386,8 @@ public class View extends JFrame {
     }
 
     public void addComplexTaskInTree(ComplexTask parentComplexTask, ComplexTask childComplexTask) {
-        //System.out.println("adaugare task complex in task complex");
         parentComplexTask.getTasks().add(childComplexTask);
         Model.saveTasks();
-        System.out.println("\nParent Complex Task id:" + parentComplexTask.getIdTask() + "\n");
-        //Model.addTask(childComplexTask);
         taskHistory.push(childComplexTask);
         this.displayTasksForComplexTask(childComplexTask);
     }
@@ -460,7 +447,6 @@ public class View extends JFrame {
                     if(!tasks.isEmpty()){
                         Task selectedTask = tasks.get(row);
                         if (selectedTask instanceof ComplexTask) {
-                            //System.out.println(((ComplexTask) selectedTask));
                             viewTasksForComplexTask((ComplexTask)selectedTask);
                         }
                     }
@@ -489,9 +475,6 @@ public class View extends JFrame {
         List<Task> tasksOfEmployee = Model.loadTasksManagement().getTasksOfEmployee(employee);
         List<Task> tasks = flattenTasks(tasksOfEmployee);
 
-//        for (Task t : tasks) {
-//            System.out.println("↳ Subtask: " + t.getIdTask() + " (" + (t instanceof SimpleTask ? "simple" : "complex") + ")");
-//        }
         JDialog dialog = new JDialog(this, "Tasks for employee: " + employee.getName(), true);
         dialog.setSize(500, 300);
         dialog.setLayout(new BorderLayout());
@@ -501,7 +484,6 @@ public class View extends JFrame {
 
         int i = 0;
         for (Task task : tasks) {
-            //System.out.println(subtask);
             data[i][0] = task.getIdTask();
             data[i][1] = (task instanceof SimpleTask) ? "simple" : "complex";
             data[i][2] = task.getStatusTask();
@@ -539,10 +521,6 @@ public class View extends JFrame {
     }
 
     public void viewTasksForComplexTask(ComplexTask complexTask) {
-        System.out.println("Opening subtasks for: " + complexTask.getIdTask());
-        for (Task t : complexTask.getTasks()) {
-            System.out.println("↳ Subtask: " + t.getIdTask() + " (" + (t instanceof SimpleTask ? "simple" : "complex") + ")");
-        }
         JDialog dialog = new JDialog(this, "Subtasks for Complex Task " + complexTask.getIdTask(), true);
         dialog.setSize(500, 300);
         dialog.setLayout(new BorderLayout());
@@ -550,10 +528,8 @@ public class View extends JFrame {
         String[] columnNames = {"ID", "Type", "Status", "Duration"};
         Object[][] data = new Object[complexTask.getTasks().size()][4];
 
-
         int i = 0;
         for (Task subtask : complexTask.getTasks()) {
-            //System.out.println(subtask);
             data[i][0] = subtask.getIdTask();
             data[i][1] = (subtask instanceof SimpleTask) ? "simple" : "complex";
             data[i][2] = subtask.getStatusTask();
@@ -599,13 +575,11 @@ public class View extends JFrame {
         int option = JOptionPane.showConfirmDialog(null, message, "Modify status", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             String value1 = field1.getText();
-            System.out.println("modific task: " + Integer.parseInt(value1));
             Model.loadTasksManagement().modifyTaskStatus(1, Integer.parseInt(value1));
         }
     }
 
     public void filterEmployeesDialog(){
-        System.out.println("filter...");
         HashMap<Integer, ArrayList<Employee>> greatEmployees = Utility.over40Hours(Model.loadTasksManagement());
 
         JDialog dialog = new JDialog(this, "All employees with a work duration greater than 40 hours", true);

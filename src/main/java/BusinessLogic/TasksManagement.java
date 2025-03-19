@@ -1,4 +1,10 @@
-package org.example;
+package BusinessLogic;
+
+import DataAcces.Model;
+import DataModel.Employee;
+import DataModel.SimpleTask;
+import DataModel.Task;
+import GUI.View;
 
 import java.io.Serializable;
 import java.util.*;

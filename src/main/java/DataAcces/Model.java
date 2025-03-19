@@ -1,4 +1,9 @@
-package org.example;
+package DataAcces;
+import DataModel.Employee;
+import DataModel.Task;
+import BusinessLogic.TasksManagement;
+import GUI.View;
+
 import java.io.*;
 import java.util.*;
 
@@ -32,7 +37,6 @@ public class Model {
         if (!rootTasks.contains(task)) {
             rootTasks.add(task);
         }
-        // rootTasks.add(task);
         saveTasks();
     }
 
@@ -49,7 +53,6 @@ public class Model {
             List<Employee> employees = (List<Employee>) ois.readObject();
             if (employees == null) {
                 employees = new ArrayList<>();
-                //System.out.println("employee list is empty");
             }
             int maxId = 0;
             for (Employee employee : employees) {
@@ -61,7 +64,6 @@ public class Model {
             System.out.println("ID: " + maxId);
             return employees;
         } catch (IOException | ClassNotFoundException e) {
-            //System.out.println("empty employee list");
             return null;
         }
     }

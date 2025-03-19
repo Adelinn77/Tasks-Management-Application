@@ -1,4 +1,8 @@
-package org.example;
+package BusinessLogic;
+
+import DataModel.Employee;
+import DataModel.Task;
+import GUI.View;
 
 import java.util.*;
 

@@ -1,4 +1,4 @@
-package org.example;
+package DataModel;
 
 import java.io.Serializable;
 import java.util.Objects;
