@@ -22,7 +22,7 @@ Here is a look at the application's interface:
 ![Main Dashboard View](screenshots/employees.png)  
 *Above: The main dashboard showing the overview of all employees.*
 
-![Task Creation View](screenshots/tasks.png)  
+![Task Creation View](screenshots/Tasks.png)  
 *Above: The overview of all tasks, simple and complex.*
 
 💻 Tech Stack & Architecture
